@@ -7,6 +7,7 @@ namespace tic_tac_toe.Models
 {
     internal class Game
     {
+        public string Tag { get; set; }
         public bool IsOver { get; private set; }
         public bool IsDraw { get; private set; }
         public Player player1 { get; set; }
@@ -28,12 +29,8 @@ namespace tic_tac_toe.Models
             {
                 return false;
             }
-
-            //// Place the player number at the given position
             this.PlacePlayerNumber(player, position);
 
-            //// Check if we have a winner. If this returns true, 
-            //// game would be over and would have a winner, else game would continue.
             return this.CheckWinner();
         }
 

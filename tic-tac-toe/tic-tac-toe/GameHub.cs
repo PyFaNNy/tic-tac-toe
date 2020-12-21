@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.VisualBasic;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +15,37 @@ namespace tic_tac_toe
         private static readonly ConcurrentBag<Game> games =
              new ConcurrentBag<Game>();
 
-        public void RegisterGame(string Tag)
+        private static readonly Random toss = new Random();
+
+
+        public async Task RegisterGame(string Tag)
         {
-            string name = Tag;
-            var player = new Player
+            var player1 = new Player
             {
                 ConnectionId = Context.ConnectionId,
-                Name = name,
-                IsPlaying = false,
-                IsSearchingOpponent = true
+                
             };
-        }
+            var game = new Game()
+            {
+                player1 = player1,
+                Tag = Tag
+            };
 
+            games.Add(game);
+            await Clients.All.SendAsync("GetGames", game);
+        }
+        public async Task FindGame(string Tag)
+        {
+            ArrayList list = new ArrayList();
+            var i = games.ToArray();
+            foreach (Game fVar in i)
+            {
+                if (fVar.Tag.Equals(Tag))
+                {
+                    list.Add(fVar);
+                }
+            }
+            await Clients.All.SendAsync("FindGames", list);
+        }
     }
 }

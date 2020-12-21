@@ -1,20 +1,96 @@
-﻿<div id="divRegister">
+﻿<div>
     <fieldset>
-        <legend>Register Game</legend>
         <div class="form-group">
-            <label for="Tag" class="col-lg-2 control-label">Tag</label>
             <div class="col-lg-10">
-                <input type="text" class="form-control" id="Tag"
-                       placeholder="Tag">
+                <input type="text" class="form-control" id="Tag" placeholder="Tag">
             </div>
         </div>
         <div class="form-group">
             <div class="col-lg-10 col-lg-offset-2">
-                <button type="button" class="btn btn-primary"
-                        id="btnRegister">
-                    Register
-                </button>
+                <button type="button" class="btn btn-primary" id="btnRegister">Register</button>
+                <button type="button" class="btn btn-primary" id="btnFind">Find</button>
             </div>
+        </div>
+        <div>
+            <label>Finded games</label>
+            <table class="table table-bordered table-checks">
+                <tbody>
+                    <tr>
+                        <td>Names</td>
+                        <td>Creator</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+                <tbody id="findgames">
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <label>Registered games</label>
+            <table id="games" class="table table-bordered table-checks">
+                <tbody>
+                    <tr>
+                        <td>Names</td>
+                        <td>Creator</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </fieldset>
 </div>
+<script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+<script>
+    const hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/game")
+        .build();
+    var GameTag = "";
+
+    hubConnection.on("GetGames", function (data) {
+        var tbody = document.getElementById("games").getElementsByTagName("TBODY")[0];
+            var row = document.createElement("TR")
+            var td1 = document.createElement("TD")
+            td1.appendChild(document.createTextNode(data.tag))
+            var td2 = document.createElement("TD")
+            var td3 = document.createElement("TD")
+            //td2.appendChild(document.createElement(<button type="button" class="btn btn-primary" id="btnConnect">Connect</button>)
+            td3.appendChild(document.createTextNode("@User.Identity.Name"))
+            row.appendChild(td1);
+            row.appendChild(td3);
+            row.appendChild(td2);
+            tbody.appendChild(row);
+    });
+
+    hubConnection.on("FindGames", function (data) {
+        var div = document.getElementById('findgames');
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+        for (i = 0; i < data.length; i++) {
+            var tbody = document.getElementById("findgames")/*.getElementsByTagName("TBODY")[0]*/;
+            var row = document.createElement("TR")
+            var td1 = document.createElement("TD")
+            td1.appendChild(document.createTextNode(data[i].tag))
+            var td2 = document.createElement("TD")
+            var td3 = document.createElement("TD")
+            //td2.appendChild(document.createElement(<button type="button" class="btn btn-primary" id="btnConnect">Connect</button>)
+            td3.appendChild(document.createTextNode("@User.Identity.Name"))
+            row.appendChild(td1);
+            row.appendChild(td3);
+            row.appendChild(td2);
+            tbody.appendChild(row);
+        }
+
+    });
+
+    document.getElementById("btnRegister").addEventListener("click", function (e) {
+        let tag= document.getElementById("Tag").value;
+        hubConnection.invoke("RegisterGame", tag);
+    });
+    document.getElementById("btnFind").addEventListener("click", function (e) {
+        let tag = document.getElementById("Tag").value;
+        hubConnection.invoke("FindGame", tag);
+    });
+
+    hubConnection.start();
+</script>

@@ -23,7 +23,7 @@ namespace tic_tac_toe.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Games()
         {
             return View();
         }
