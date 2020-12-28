@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using tic_tac_toe.Models;
 using TicTacToeGame;
 using Microsoft.AspNetCore.Identity;
+using System.Threading;
 
 namespace tic_tac_toe
 {
@@ -71,15 +72,12 @@ namespace tic_tac_toe
         }
         public void MakeAMove(int position, string Email)
         {
-            //// Lets find a game from our list of games where one of the player has the same connection Id as the current connection has.
             Game game = games.First(games => games.Player1.Email.Equals(Email) || games.Player2.Email.Equals(Email));
 
-            //// Designate 0 for player 1
             int symbol = 0;
 
             if (game .Player2.Email.Equals(Email))
             {
-                //// Designate 1 for player 2.
                 symbol = 1;
             }
 
@@ -90,42 +88,30 @@ namespace tic_tac_toe
                 return;
             }
 
-            //// Update both the players that 
-
-
-            //// Place the symbol and look for a winner after every move.
             if (game.Play(symbol, position))
             {
-                Remove<Game>(games, game);
                 Clients.Client(game.Player1.ConnectionId).SendAsync("GameOver", $"The winner is {player.Email}");
                 Clients.Client(game.Player2.ConnectionId).SendAsync("GameOver", $"The winner is {player.Email}");
-                //this.Clients.Client(player.ConnectionId).SendAsync("RedirectHome");
-                //this.Clients.Client(player.Opponent.ConnectionId).SendAsync("RedirectHome");
+                Clients.Client(game.Player1.ConnectionId).SendAsync("moveMade", game.field);
+                Clients.Client(game.Player2.ConnectionId).SendAsync("moveMade", game.field);
+                Thread.Sleep(5000);
+                this.Clients.Client(player.ConnectionId).SendAsync("RedirectHome");
+                this.Clients.Client(player.Opponent.ConnectionId).SendAsync("RedirectHome");
                 games.TryTake(out game);
             }
             Clients.Client(game.Player1.ConnectionId).SendAsync("moveMade", game.field);
             Clients.Client(game.Player2.ConnectionId).SendAsync("moveMade",  game.field);
-            if (game.IsOver && game.IsDraw)
-            {
-                Remove<Game>(games, game);
-                Clients.Client(game.Player1.ConnectionId).SendAsync(Constants.GameOver, "Its a time draw!!!");
-                Clients.Client(game.Player2.ConnectionId).SendAsync(Constants.GameOver, "Its a time draw!!!");
 
-            }
 
             if (!game.IsOver)
             {
                 player.WaitingForMove = !player.WaitingForMove;
                 player.Opponent.WaitingForMove = !player.Opponent.WaitingForMove;
 
-                //Clients.Client(player.Opponent.ConnectionId).SendAsync(Constants.WaitingForOpponent, player.Opponent.Email);
-                //Clients.Client(player.ConnectionId).SendAsync(Constants.WaitingForOpponent, player.Opponent.Email);
+                Clients.Client(player.Opponent.ConnectionId).SendAsync(Constants.WaitingForOpponent, player.Opponent.Email);
+                Clients.Client(player.ConnectionId).SendAsync(Constants.WaitingForOpponent, player.Opponent.Email);
             }
         }
 
-        private void Remove<T>(ConcurrentBag<T> players, T playerWithoutGame)
-        {
-            players = new ConcurrentBag<T>(players?.Except(new[] { playerWithoutGame }));
-        }
     }
 }

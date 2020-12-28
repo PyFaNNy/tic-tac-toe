@@ -61,7 +61,7 @@
     });
     hubConnection.on('GameOver', data => {
         document.getElementById("divInfo").hidden = false;
-        document.getElementById("divInfo").append(data);
+        document.getElementById("divInfo").append(data)
     });
     hubConnection.on('RedirectHome', data => {
         window.location.href = `/Home/Games`
