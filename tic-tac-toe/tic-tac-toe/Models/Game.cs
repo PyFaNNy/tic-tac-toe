@@ -10,9 +10,9 @@ namespace tic_tac_toe.Models
         public string Tag { get; set; }
         public bool IsOver { get; private set; }
         public bool IsDraw { get; private set; }
-        public Player player1 { get; set; }
+        public Player Player1 { get; set; }
         public Player Player2 { get; set; }
-        private readonly int[] field = new int[9];
+        public int[] field = new int[9];
         private int movesLeft = 9;
 
         public Game()

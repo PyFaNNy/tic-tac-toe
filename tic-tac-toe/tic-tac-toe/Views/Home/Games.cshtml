@@ -1,18 +1,29 @@
 ﻿<div>
     <fieldset>
+        <div id="divRegister">
+            <div class="form-group">
+                <div class="col-lg-10">
+                    <input type="text" class="form-control" id="TagReg" placeholder="Tag">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-10 col-lg-offset-2">
+                    <button type="button" class="btn btn-primary" id="btnRegister">Register</button>
+                </div>
+            </div>
+        </div>
         <div class="form-group">
             <div class="col-lg-10">
-                <input type="text" class="form-control" id="Tag" placeholder="Tag">
+                <input type="text" class="form-control" id="TagFind" placeholder="Tag">
             </div>
         </div>
         <div class="form-group">
             <div class="col-lg-10 col-lg-offset-2">
-                <button type="button" class="btn btn-primary" id="btnRegister">Register</button>
                 <button type="button" class="btn btn-primary" id="btnFind">Find</button>
             </div>
         </div>
         <div>
-            <label>Finded games</label>
+            <label>Games</label>
             <table class="table table-bordered table-checks">
                 <tbody>
                     <tr>
@@ -21,22 +32,11 @@
                         <td></td>
                     </tr>
                 </tbody>
-                <tbody id="findgames">
+                <tbody id="games">
                 </tbody>
             </table>
         </div>
-        <div>
-            <label>Registered games</label>
-            <table id="games" class="table table-bordered table-checks">
-                <tbody>
-                    <tr>
-                        <td>Names</td>
-                        <td>Creator</td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+
     </fieldset>
 </div>
 <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
@@ -45,52 +45,85 @@
         .withUrl("/game")
         .build();
     var GameTag = "";
-
     hubConnection.on("GetGames", function (data) {
-        var tbody = document.getElementById("games").getElementsByTagName("TBODY")[0];
-            var row = document.createElement("TR")
-            var td1 = document.createElement("TD")
-            td1.appendChild(document.createTextNode(data.tag))
-            var td2 = document.createElement("TD")
-            var td3 = document.createElement("TD")
-            //td2.appendChild(document.createElement(<button type="button" class="btn btn-primary" id="btnConnect">Connect</button>)
-            td3.appendChild(document.createTextNode("@User.Identity.Name"))
-            row.appendChild(td1);
-            row.appendChild(td3);
-            row.appendChild(td2);
-            tbody.appendChild(row);
-    });
-
-    hubConnection.on("FindGames", function (data) {
-        var div = document.getElementById('findgames');
+        //$("#divRegister").hide();
+        var div = document.getElementById('games');
         while (div.firstChild) {
             div.removeChild(div.firstChild);
         }
         for (i = 0; i < data.length; i++) {
-            var tbody = document.getElementById("findgames")/*.getElementsByTagName("TBODY")[0]*/;
+            var email = data[i].player1.email;
+            var tag = data[i].tag;
+            var tbody = document.getElementById("games");
             var row = document.createElement("TR")
             var td1 = document.createElement("TD")
             td1.appendChild(document.createTextNode(data[i].tag))
             var td2 = document.createElement("TD")
             var td3 = document.createElement("TD")
-            //td2.appendChild(document.createElement(<button type="button" class="btn btn-primary" id="btnConnect">Connect</button>)
-            td3.appendChild(document.createTextNode("@User.Identity.Name"))
+            var btn = document.createElement("button")
+            btn.type = 'button';
+            btn.setAttribute("id", "btnConnect");
+            btn.setAttribute("onclick", "connect(this)");
+            btn.setAttribute("class", "btn btn-primary");
+            btn.setAttribute("value", email +' '+ tag);
+            btn.append("connect");
+            td2.append(btn);
+
+            td3.append(email)
             row.appendChild(td1);
             row.appendChild(td3);
             row.appendChild(td2);
             tbody.appendChild(row);
         }
+    });
+    hubConnection.on("FindGames", function (data) {
+        var div = document.getElementById('games');
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+        for (i = 0; i < data.length; i++) {
+            var email = data[i].player1.email;
+            var tag = data[i].tag;
+            var tbody = document.getElementById("games");
+            var row = document.createElement("TR")
+            var td1 = document.createElement("TD")
+            td1.appendChild(document.createTextNode(data[i].tag))
+            var td2 = document.createElement("TD")
+            var td3 = document.createElement("TD")
+            var btn = document.createElement("button")
+            btn.type = 'button';
+            btn.setAttribute("id", "btnConnect");
+            btn.setAttribute("onclick", "connect(this)");
+            btn.setAttribute("class", "btn btn-primary");
+            btn.setAttribute("value", email+' '+ tag);
+            btn.append("connect");
+            td2.append(btn);
+            td3.appendChild(document.createTextNode(email))
+    row.appendChild(td1);
+    row.appendChild(td3);
+    row.appendChild(td2);
+    tbody.appendChild(row);
+}
+    });
 
+    hubConnection.on("Redirect", function (data)
+    {
+        window.location.href = `/Home/Play?id=${data}`
     });
 
     document.getElementById("btnRegister").addEventListener("click", function (e) {
-        let tag= document.getElementById("Tag").value;
-        hubConnection.invoke("RegisterGame", tag);
+        let email = '@User.Identity.Name';
+        let tag = document.getElementById("TagReg").value;
+        hubConnection.invoke("RegisterGame", tag, email);
     });
     document.getElementById("btnFind").addEventListener("click", function (e) {
-        let tag = document.getElementById("Tag").value;
-        hubConnection.invoke("FindGame", tag);
+    let tag = document.getElementById("TagFind").value;
+    hubConnection.invoke("FindGame", tag);
     });
 
-    hubConnection.start();
+    function connect(button) {
+        hubConnection.invoke("ConnectGame", button.value + " @User.Identity.Name");
+    }
+
+hubConnection.start();
 </script>
